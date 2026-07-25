@@ -25,11 +25,10 @@ public class Primerp {
         carro1.setPrecio(1000);
         carro1.setLlanta(llantaToyota);
         carro1.mostrarInformacion();
-        
 
         Llanta llantaJeep = new Llanta("BFGoodrich", 31, 32);
         Vehiculo carro2 = new Vehiculo(
-         "Jeep", "Wrangler TJ", 2001, 75000,llantaJeep);
+                "Jeep", "Wrangler TJ", 2001, 75000, llantaJeep);
         //carro2.marca = "Jeep";
         //carro2.modelo = "Wrangler TJ";
         //carro2.anio = 2001;
@@ -43,6 +42,10 @@ public class Primerp {
         Llanta llantaFord = new Llanta("Goodyear", 18, 34);
         Vehiculo carro3 = new Vehiculo("ford", "150", 2010, 75000, llantaFord);
         carro3.mostrarInformacion();
+
+        FrmVehiculo ventana = new FrmVehiculo();
+        ventana.setVisible(true);
+
     }
 
 }

@@ -4,9 +4,11 @@
  */
 package primerp;
 
+import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 /**
@@ -39,6 +41,9 @@ public class FrmVehiculo extends JFrame {
     JTextField txtPresionLlanta = new JTextField();
 
     JButton btnGuardar = new JButton("Guardar");
+    int contador=0; // variable global o atributo
+
+    ArrayList<Vehiculo> carros = new ArrayList();
 
     FrmVehiculo() {
         setTitle("Registro de Vehículo");
@@ -76,7 +81,7 @@ public class FrmVehiculo extends JFrame {
 
         lblMarcaLlanta.setBounds(50, 230, 120, 30);
         add(lblMarcaLlanta);
-        
+
         txtMarcaLlanta.setBounds(180, 230, 200, 30);
         add(txtMarcaLlanta);
 
@@ -94,7 +99,48 @@ public class FrmVehiculo extends JFrame {
 
         btnGuardar.setBounds(150, 360, 200, 35);
         add(btnGuardar);
+        
+        this.btnGuardar.addActionListener(e -> {
+            functionbtn();
+        });
 
+    }
+
+    private void functionbtn() {
+
+        contador++;
+        System.out.println("hola"+contador);
+        
+        String marca = txtMarca.getText();
+        String modelo = txtModelo.getText();
+
+        int anio = Integer.parseInt(txtAnio.getText());
+
+        double precio = Double.parseDouble(txtPrecio.getText());
+
+        Llanta llanta = new Llanta(
+                txtMarcaLlanta.getText(),
+                Integer.parseInt(txtTamanioLlanta.getText()),
+                Double.parseDouble(txtPresionLlanta.getText())
+        );
+
+        Vehiculo carro = new Vehiculo(
+                        marca,
+                        modelo,
+                        anio,
+                        precio,
+                        llanta
+                );
+
+        carro.mostrarInformacion();
+        this.carros.add(carro);
+       
+
+        JOptionPane.showMessageDialog(this, "vehiculo guardado");
+        this.txtMarca.setText("");
+        this.txtModelo.setText("");
+        this.txtAnio.setText("");
+        this.txtPrecio.setText("");
     }
 
 }

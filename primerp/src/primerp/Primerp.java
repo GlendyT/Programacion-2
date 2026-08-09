@@ -46,6 +46,12 @@ public class Primerp {
         FrmVehiculo ventana = new FrmVehiculo();
         ventana.setVisible(true);
 
+        FrrmBuses ventana2 = new FrrmBuses();
+        ventana2.setVisible(true);
+
+        FormMotos ventana3 = new FormMotos();
+        ventana3.setVisible(true);
+
     }
 
 }

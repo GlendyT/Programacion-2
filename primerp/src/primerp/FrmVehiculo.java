@@ -9,7 +9,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -41,13 +44,17 @@ public class FrmVehiculo extends JFrame {
     JTextField txtPresionLlanta = new JTextField();
 
     JButton btnGuardar = new JButton("Guardar");
-    int contador=0; // variable global o atributo
+    int contador = 0; // variable global o atributo
+
+    JTable tablaVehiculos;
+    DefaultTableModel modeloTabla;
+    JScrollPane scrollTabla;
 
     ArrayList<Vehiculo> carros = new ArrayList();
 
     FrmVehiculo() {
         setTitle("Registro de Vehículo");
-        setSize(500, 500);
+        setSize(600, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
@@ -98,8 +105,19 @@ public class FrmVehiculo extends JFrame {
         add(txtPresionLlanta);
 
         btnGuardar.setBounds(150, 360, 200, 35);
+
         add(btnGuardar);
-        
+
+        modeloTabla = new DefaultTableModel();
+        modeloTabla.addColumn("Marca");
+        modeloTabla.addColumn("Modelo");
+        modeloTabla.addColumn("Año");
+        tablaVehiculos = new JTable(modeloTabla);
+
+        scrollTabla = new JScrollPane(tablaVehiculos);
+        scrollTabla.setBounds(50, 415, 530, 220);
+        add(scrollTabla);
+
         this.btnGuardar.addActionListener(e -> {
             functionbtn();
         });
@@ -109,8 +127,8 @@ public class FrmVehiculo extends JFrame {
     private void functionbtn() {
 
         contador++;
-        System.out.println("hola"+contador);
-        
+        System.out.println("hola" + contador);
+
         String marca = txtMarca.getText();
         String modelo = txtModelo.getText();
 
@@ -125,17 +143,17 @@ public class FrmVehiculo extends JFrame {
         );
 
         Vehiculo carro = new Vehiculo(
-                        marca,
-                        modelo,
-                        anio,
-                        precio,
-                        llanta
-                );
+                marca,
+                modelo,
+                anio,
+                precio,
+                llanta
+        );
 
-        carro.mostrarInformacion();
+        this.modeloTabla.addRow(new Object[]{carro.getMarca(), carro.getModelo(), carro.getAnio()});
+
         this.carros.add(carro);
-       
-
+        carro.mostrarInformacion();
         JOptionPane.showMessageDialog(this, "vehiculo guardado");
         this.txtMarca.setText("");
         this.txtModelo.setText("");

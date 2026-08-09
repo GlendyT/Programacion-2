@@ -17,13 +17,41 @@ public class Vehiculo {
     private Llanta llanta;
 
     /*get: obtener,  set: asignar/colorcar/setear*/
+    public String getModelo() {
+        return this.modelo;
+    }
+
+    public String getMarca() {
+        return marca;
+    }
+
+    public Llanta getLlanta() {
+        return llanta;
+    }
+
     public void setPrecio(double nprecio) {
         if (nprecio > 0) {
             this.precio = nprecio;
         }
     }
-    
-    public void setLlanta(Llanta nllanta){
+
+    public double GetPrecio() {
+        return this.precio;
+    }
+
+    public int getAnio() {
+        return anio;
+    }
+
+    public void setAnio(int anio) {
+        if (anio > 2010) {
+            this.anio = anio;
+        } else {
+            this.anio = 0;
+        }
+    }
+
+    public void setLlanta(Llanta nllanta) {
         this.llanta = nllanta;
     }
 

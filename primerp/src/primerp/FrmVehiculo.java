@@ -44,6 +44,7 @@ public class FrmVehiculo extends JFrame {
     JTextField txtPresionLlanta = new JTextField();
 
     JButton btnGuardar = new JButton("Guardar");
+    JButton btnMotor = new JButton("Gestionar Motor");
     int contador = 0; // variable global o atributo
 
     JTable tablaVehiculos;
@@ -54,7 +55,7 @@ public class FrmVehiculo extends JFrame {
 
     FrmVehiculo() {
         setTitle("Registro de Vehículo");
-        setSize(600, 700);
+        setSize(600, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
@@ -104,9 +105,11 @@ public class FrmVehiculo extends JFrame {
         txtPresionLlanta.setBounds(180, 310, 200, 30);
         add(txtPresionLlanta);
 
-        btnGuardar.setBounds(150, 360, 200, 35);
-
+        btnGuardar.setBounds(50, 360, 150, 35);
         add(btnGuardar);
+
+        btnMotor.setBounds(220, 360, 160, 35);
+        add(btnMotor);
 
         modeloTabla = new DefaultTableModel();
         modeloTabla.addColumn("Marca");
@@ -115,11 +118,16 @@ public class FrmVehiculo extends JFrame {
         tablaVehiculos = new JTable(modeloTabla);
 
         scrollTabla = new JScrollPane(tablaVehiculos);
-        scrollTabla.setBounds(50, 415, 530, 220);
+        scrollTabla.setBounds(50, 415, 530, 270);
         add(scrollTabla);
 
         this.btnGuardar.addActionListener(e -> {
             functionbtn();
+        });
+
+        this.btnMotor.addActionListener(e -> {
+            FrmMotor ventanaMotor = new FrmMotor();
+            ventanaMotor.setVisible(true);
         });
 
     }

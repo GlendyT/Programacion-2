@@ -52,6 +52,7 @@ public class FrmVehiculo extends JFrame {
     JScrollPane scrollTabla;
 
     ArrayList<Vehiculo> carros = new ArrayList();
+    ArrayList<Vehiculo> listaVehiculos = new ArrayList<>();
 
     FrmVehiculo() {
         setTitle("Registro de Vehículo");
@@ -108,8 +109,8 @@ public class FrmVehiculo extends JFrame {
         btnGuardar.setBounds(50, 360, 150, 35);
         add(btnGuardar);
 
-        btnMotor.setBounds(220, 360, 160, 35);
-        add(btnMotor);
+        Conexion c = new Conexion();
+        listaVehiculos = c.mostrarVehiculos();
 
         modeloTabla = new DefaultTableModel();
         modeloTabla.addColumn("Marca");
@@ -120,6 +121,16 @@ public class FrmVehiculo extends JFrame {
         scrollTabla = new JScrollPane(tablaVehiculos);
         scrollTabla.setBounds(50, 415, 530, 270);
         add(scrollTabla);
+
+        for (int i = 0; i < listaVehiculos.size(); i++) {
+
+            Vehiculo carro = listaVehiculos.get(i);
+            this.modeloTabla.addRow(new Object[]{carro.getMarca(), carro.getModelo(), carro.getAnio()});
+
+        }
+
+        btnMotor.setBounds(220, 360, 160, 35);
+        add(btnMotor);
 
         this.btnGuardar.addActionListener(e -> {
             functionbtn();
@@ -155,6 +166,7 @@ public class FrmVehiculo extends JFrame {
                 modelo,
                 anio,
                 precio,
+                "",
                 llanta
         );
 

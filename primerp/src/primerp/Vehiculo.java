@@ -76,6 +76,20 @@ public class Vehiculo {
             String modelo,
             int anio,
             double precio,
+            String color) {
+
+        this.marca = marca;
+        this.modelo = modelo;
+        this.anio = anio;
+        this.precio = precio;
+        this.color = color;
+    }
+
+    public Vehiculo(
+            String marca,
+            String modelo,
+            int anio,
+            double precio,
             String color,
             Llanta llanta) {
 

@@ -63,7 +63,7 @@ public class Conexion {
                 double precio = resultado.getDouble("precio");
 
                 Vehiculo carro = new Vehiculo(marca, modelo, anio, precio, color);
-                listaVehiculos.add(carro);
+                listVehiculos.add(carro);
                 
                 
                 System.out.println("------------------------");

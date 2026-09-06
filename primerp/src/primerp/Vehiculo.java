@@ -16,6 +16,7 @@ public class Vehiculo {
     private double precio;
     private Llanta llanta;
     private Motor motor;
+    String color;
 
     /*get: obtener,  set: asignar/colorcar/setear*/
     public String getModelo() {
@@ -59,6 +60,8 @@ public class Vehiculo {
     public void setLlanta(Llanta nllanta) {
         this.llanta = nllanta;
     }
+    
+    
 
     public void setMotor(Motor nmotor) {
         this.motor = nmotor;
@@ -73,12 +76,14 @@ public class Vehiculo {
             String modelo,
             int anio,
             double precio,
+            String color,
             Llanta llanta) {
 
         this.marca = marca;
         this.modelo = modelo;
         this.anio = anio;
         this.precio = precio;
+        this.color = color;
         this.llanta = llanta;
     }
 
@@ -87,6 +92,7 @@ public class Vehiculo {
             String modelo,
             int anio,
             double precio,
+            String color,
             Llanta llanta,
             Motor motor) {
 
@@ -95,6 +101,7 @@ public class Vehiculo {
         this.anio = anio;
         this.precio = precio;
         this.llanta = llanta;
+        this.color = color;
         this.motor = motor;
     }
 
@@ -103,6 +110,7 @@ public class Vehiculo {
         System.out.println("Modelo: " + modelo);
         System.out.println("Año: " + anio);
         System.out.println("Precio: Q" + precio);
+        System.out.println("color" + color);
         System.out.println("Información de la llanta:");
         llanta.mostrarInformacion();
         if (motor != null) {

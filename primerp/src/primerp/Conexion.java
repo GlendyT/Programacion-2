@@ -9,6 +9,7 @@ import java.sql.DriverManager;//se encarga de solicitar la conexión al driver J
 import java.sql.SQLException; //permite manejar errores relacionados con la base de datos.
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 
 /**
@@ -53,12 +54,18 @@ public class Conexion {
             Statement statment = c.createStatement();
             ResultSet resultado = statment.executeQuery(sql);
 
+            // DEBUG: imprimir nombres de columnas reales
+            ResultSetMetaData meta = resultado.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                System.out.println("Columna " + i + ": " + meta.getColumnName(i));
+            }
+
             while (resultado.next()) {
 
                 int id = resultado.getInt("ID_VEHICULO");
                 String marca = resultado.getString("MARCA");
                 String modelo = resultado.getString("MODELO");
-                int anio = resultado.getInt("ANHIO");
+                int anio = resultado.getInt("ANIO");
                 String color = resultado.getString("color");
                 double precio = resultado.getDouble("precio");
 

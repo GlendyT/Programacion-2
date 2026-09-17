@@ -17,6 +17,7 @@ public class Vehiculo {
     private Llanta llanta;
     private Motor motor;
     String color;
+    int id; 
 
     /*get: obtener,  set: asignar/colorcar/setear*/
     public String getModelo() {
@@ -72,12 +73,14 @@ public class Vehiculo {
     }
 
     public Vehiculo(
+            int id,
             String marca,
             String modelo,
             int anio,
             double precio,
             String color) {
 
+        this.id = id;
         this.marca = marca;
         this.modelo = modelo;
         this.anio = anio;

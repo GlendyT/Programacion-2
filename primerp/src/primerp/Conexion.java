@@ -4,12 +4,16 @@
  */
 package primerp;
 
+/*
 import java.sql.Connection;  //nos sirve para conectar 
 import java.sql.DriverManager;//se encarga de solicitar la conexión al driver JDBC. 
 import java.sql.SQLException; //permite manejar errores relacionados con la base de datos.
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.util.ArrayList;*/
+
+import java.sql.*;
 import java.util.ArrayList;
 
 /**
@@ -69,10 +73,9 @@ public class Conexion {
                 String color = resultado.getString("color");
                 double precio = resultado.getDouble("precio");
 
-                Vehiculo carro = new Vehiculo(marca, modelo, anio, precio, color);
+                Vehiculo carro = new Vehiculo(id, marca, modelo, anio, precio, color);
                 listVehiculos.add(carro);
-                
-                
+
                 System.out.println("------------------------");
                 System.out.println("ID: " + id);
                 System.out.println("Marca: " + marca);
@@ -89,4 +92,113 @@ public class Conexion {
         }
         return listVehiculos;
     }
+
+    public void insertarVehiculo(
+            int id,
+            String marca,
+            String modelo,
+            int anio,
+            double precio, String color) {
+
+        String sql = "INSERT INTO VEHICULOS "
+                + "(ID_VEHICULO, MARCA, MODELO, ANIO, PRECIO, COLOR) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try {
+
+            Connection conexion = Conexion.conectar();
+
+            PreparedStatement ps
+                    = conexion.prepareStatement(sql);
+
+            ps.setInt(1, id);
+            ps.setString(2, marca);
+            ps.setString(3, modelo);
+            ps.setInt(4, anio);
+            ps.setDouble(5, precio);
+            ps.setString(6, color);
+
+            ps.executeUpdate();
+
+            System.out.println(
+                    "Vehículo insertado correctamente"
+            );
+
+        } catch (SQLException e) {
+
+            System.out.println(
+                    "Error al insertar: " + e.getMessage()
+            );
+        }
+    }
+
+    public void actualizarVehiculo(
+            int id,
+            String marca,
+            String modelo,
+            int anio,
+            double precio) {
+
+        String sql = "UPDATE VEHICULOS "
+                + "SET MARCA = ?, "
+                + "MODELO = ?, "
+                + "ANIO = ?, "
+                + "PRECIO = ? "
+                + "WHERE ID_VEHICULO = ?";
+
+        try {
+
+            Connection conexion = Conexion.conectar();
+
+            PreparedStatement ps
+                    = conexion.prepareStatement(sql);
+
+            ps.setString(1, marca);
+            ps.setString(2, modelo);
+            ps.setInt(3, anio);
+            ps.setDouble(4, precio);
+            ps.setInt(5, id);
+
+            ps.executeUpdate();
+
+            System.out.println(
+                    "Vehículo actualizado correctamente"
+            );
+
+        } catch (SQLException e) {
+
+            System.out.println(
+                    "Error al actualizar: " + e.getMessage()
+            );
+        }
+    }
+
+    public void eliminarVehiculo(int id) {
+
+        String sql = "DELETE FROM VEHICULOS "
+                + "WHERE ID_VEHICULO = ?";
+
+        try {
+
+            Connection conexion = Conexion.conectar();
+
+            PreparedStatement ps
+                    = conexion.prepareStatement(sql);
+
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+
+            System.out.println(
+                    "Vehículo eliminado correctamente"
+            );
+
+        } catch (SQLException e) {
+
+            System.out.println(
+                    "Error al eliminar: " + e.getMessage()
+            );
+        }
+    }
+
 }

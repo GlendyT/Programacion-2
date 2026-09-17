@@ -44,6 +44,8 @@ public class FrmVehiculo extends JFrame {
     JTextField txtPresionLlanta = new JTextField();
     
     JButton btnGuardar = new JButton("Guardar");
+    JButton btnActualizar = new JButton("Actualizar");
+    JButton btnEliminar = new JButton("Eliminar");
     JButton btnMotor = new JButton("Gestionar Motor");
     int contador = 0; // variable global o atributo
 
@@ -115,8 +117,14 @@ public class FrmVehiculo extends JFrame {
         txtColor.setBounds(180, 310, 200, 30);
         add(txtColor);
         
-        btnGuardar.setBounds(70, 380, 170, 55);
+        btnGuardar.setBounds(70, 380, 150, 35);
         add(btnGuardar);
+
+        btnActualizar.setBounds(50, 420, 150, 35);
+        add(btnActualizar);
+
+        btnEliminar.setBounds(430, 420, 150, 35);
+        add(btnEliminar);
         
         modeloTabla = new DefaultTableModel();
         modeloTabla.addColumn("id");
@@ -155,7 +163,15 @@ public class FrmVehiculo extends JFrame {
             FrmMotor ventanaMotor = new FrmMotor();
             ventanaMotor.setVisible(true);
         });
-        
+
+        this.btnActualizar.addActionListener(e -> {
+            functionActualizar();
+        });
+
+        this.btnEliminar.addActionListener(e -> {
+            functionEliminar();
+        });
+
     }
     
     private void functionfila() {
@@ -171,6 +187,57 @@ public class FrmVehiculo extends JFrame {
         this.txtColor.setText(c.color);
     }
     
+    private void functionActualizar() {
+        int fila = this.tablaVehiculos.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona un vehículo para actualizar");
+            return;
+        }
+        Vehiculo carro = this.listaVehiculos.get(fila);
+        String marca = txtMarca.getText();
+        String modelo = txtModelo.getText();
+        int anio = Integer.parseInt(txtAnio.getText());
+        double precio = Double.parseDouble(txtPrecio.getText());
+        String color = txtColor.getText();
+
+        Conexion c = new Conexion();
+        c.actualizarVehiculo(carro.id, marca, modelo, anio, precio);
+
+        carro.marca = marca;
+        carro.modelo = modelo;
+        carro.setAnio(anio);
+        carro.setPrecio(precio);
+        carro.color = color;
+
+        this.modeloTabla.setValueAt(carro.id, fila, 0);
+        this.modeloTabla.setValueAt(marca, fila, 1);
+        this.modeloTabla.setValueAt(modelo, fila, 2);
+        this.modeloTabla.setValueAt(anio, fila, 3);
+        this.modeloTabla.setValueAt(color, fila, 4);
+        this.modeloTabla.setValueAt(precio, fila, 5);
+
+        JOptionPane.showMessageDialog(this, "Vehículo actualizado");
+    }
+
+    private void functionEliminar() {
+        int fila = this.tablaVehiculos.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona un vehículo para eliminar");
+            return;
+        }
+        Vehiculo carro = this.listaVehiculos.get(fila);
+        int confirm = JOptionPane.showConfirmDialog(this, "¿Eliminar el vehículo seleccionado?");
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        Conexion c = new Conexion();
+        c.eliminarVehiculo(carro.id);
+
+        this.listaVehiculos.remove(fila);
+        this.modeloTabla.removeRow(fila);
+
+        JOptionPane.showMessageDialog(this, "Vehículo eliminado");
+    }
+
     private void functionbtn() {
         
         contador++;

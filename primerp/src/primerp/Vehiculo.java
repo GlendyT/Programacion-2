@@ -129,7 +129,9 @@ public class Vehiculo {
         System.out.println("Precio: Q" + precio);
         System.out.println("color" + color);
         System.out.println("Información de la llanta:");
-        llanta.mostrarInformacion();
+        if (llanta != null) {
+            llanta.mostrarInformacion();
+        }
         if (motor != null) {
             System.out.println("Información del motor:");
             motor.mostrarInformacion();

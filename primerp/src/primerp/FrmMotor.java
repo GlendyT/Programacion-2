@@ -77,7 +77,12 @@ public class FrmMotor extends JFrame {
         add(btnLimpiar);
 
         // Tabla
-        modeloTabla = new DefaultTableModel();
+        modeloTabla = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modeloTabla.addColumn("Tipo");
         modeloTabla.addColumn("Cilindrada (cc)");
         tablaMotores = new JTable(modeloTabla);

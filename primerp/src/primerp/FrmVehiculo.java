@@ -111,22 +111,27 @@ public class FrmVehiculo extends JFrame {
         txtPresionLlanta.setBounds(180, 310, 200, 30);
         add(txtPresionLlanta);
         
-        lblColor.setBounds(50, 310, 130, 30);
+        lblColor.setBounds(50, 350, 130, 30);
         add(lblColor);
         
-        txtColor.setBounds(180, 310, 200, 30);
+        txtColor.setBounds(180, 350, 200, 30);
         add(txtColor);
         
-        btnGuardar.setBounds(70, 380, 150, 35);
+        btnGuardar.setBounds(50, 395, 120, 35);
         add(btnGuardar);
 
-        btnActualizar.setBounds(50, 420, 150, 35);
+        btnActualizar.setBounds(310, 395, 120, 35);
         add(btnActualizar);
 
-        btnEliminar.setBounds(430, 420, 150, 35);
+        btnEliminar.setBounds(440, 395, 120, 35);
         add(btnEliminar);
         
-        modeloTabla = new DefaultTableModel();
+        modeloTabla = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modeloTabla.addColumn("id");
         modeloTabla.addColumn("Marca");
         modeloTabla.addColumn("Modelo");
@@ -136,7 +141,7 @@ public class FrmVehiculo extends JFrame {
         tablaVehiculos = new JTable(modeloTabla);
         
         scrollTabla = new JScrollPane(tablaVehiculos);
-        scrollTabla.setBounds(80, 435, 560, 290);
+        scrollTabla.setBounds(80, 440, 560, 290);
         add(scrollTabla);
         
         Conexion c = new Conexion();
@@ -152,7 +157,7 @@ public class FrmVehiculo extends JFrame {
             functionfila();
         });
         
-        btnMotor.setBounds(220, 360, 160, 35);
+        btnMotor.setBounds(180, 395, 120, 35);
         add(btnMotor);
         
         this.btnGuardar.addActionListener(e -> {
@@ -176,15 +181,17 @@ public class FrmVehiculo extends JFrame {
     
     private void functionfila() {
         int fila = this.tablaVehiculos.getSelectedRow();
-        System.out.println("fila seleccionada" + fila);
-        Vehiculo c = this.listaVehiculos.get(fila);
-        c.mostrarInformacion();
-        
-        this.txtMarca.setText(c.getMarca());
-        this.txtModelo.setText(c.getModelo());
-        this.txtAnio.setText(String.valueOf(c.getAnio()));
-        this.txtPrecio.setText(String.valueOf(c.GetPrecio()));
-        this.txtColor.setText(c.color);
+        if (fila >= 0) {
+            System.out.println("fila seleccionada" + fila);
+            Vehiculo c = this.listaVehiculos.get(fila);
+            c.mostrarInformacion();
+            
+            this.txtMarca.setText(c.getMarca());
+            this.txtModelo.setText(c.getModelo());
+            this.txtAnio.setText(String.valueOf(c.getAnio()));
+            this.txtPrecio.setText(String.valueOf(c.GetPrecio()));
+            this.txtColor.setText(c.color);
+        }
     }
     
     private void functionActualizar() {

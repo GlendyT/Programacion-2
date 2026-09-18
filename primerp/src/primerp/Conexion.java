@@ -100,7 +100,7 @@ public class Conexion {
             int anio,
             double precio, String color) {
 
-        String sql = "INSERT INTO VEHICULOS "
+        String sql = "INSERT INTO vehiculo "
                 + "(ID_VEHICULO, MARCA, MODELO, ANIO, PRECIO, COLOR) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -139,7 +139,7 @@ public class Conexion {
             int anio,
             double precio) {
 
-        String sql = "UPDATE VEHICULOS "
+        String sql = "UPDATE vehiculo "
                 + "SET MARCA = ?, "
                 + "MODELO = ?, "
                 + "ANIO = ?, "
@@ -175,7 +175,7 @@ public class Conexion {
 
     public void eliminarVehiculo(int id) {
 
-        String sql = "DELETE FROM VEHICULOS "
+        String sql = "DELETE FROM vehiculo "
                 + "WHERE ID_VEHICULO = ?";
 
         try {

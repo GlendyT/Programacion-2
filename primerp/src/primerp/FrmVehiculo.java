@@ -47,6 +47,7 @@ public class FrmVehiculo extends JFrame {
     JButton btnActualizar = new JButton("Actualizar");
     JButton btnEliminar = new JButton("Eliminar");
     JButton btnMotor = new JButton("Gestionar Motor");
+    JButton btnLimpiar = new JButton("Limpiar");
     int contador = 0; // variable global o atributo
 
     JTable tablaVehiculos;
@@ -160,6 +161,13 @@ public class FrmVehiculo extends JFrame {
         btnMotor.setBounds(180, 395, 120, 35);
         add(btnMotor);
         
+        btnLimpiar.setBounds(400, 350, 100, 30);
+        add(btnLimpiar);
+        
+        this.btnLimpiar.addActionListener(e -> {
+            limpiarCampos();
+        });
+        
         this.btnGuardar.addActionListener(e -> {
             functionbtn();
         });
@@ -224,6 +232,7 @@ public class FrmVehiculo extends JFrame {
         this.modeloTabla.setValueAt(precio, fila, 5);
 
         JOptionPane.showMessageDialog(this, "Vehículo actualizado");
+        limpiarCampos();
     }
 
     private void functionEliminar() {
@@ -243,6 +252,7 @@ public class FrmVehiculo extends JFrame {
         this.modeloTabla.removeRow(fila);
 
         JOptionPane.showMessageDialog(this, "Vehículo eliminado");
+        limpiarCampos();
     }
 
     private void functionbtn() {
@@ -283,10 +293,19 @@ public class FrmVehiculo extends JFrame {
         this.carros.add(carro);
         carro.mostrarInformacion();
         JOptionPane.showMessageDialog(this, "vehiculo guardado");
+        limpiarCampos();
+    }
+    
+    private void limpiarCampos() {
         this.txtMarca.setText("");
         this.txtModelo.setText("");
         this.txtAnio.setText("");
         this.txtPrecio.setText("");
+        this.txtColor.setText("");
+        this.txtMarcaLlanta.setText("");
+        this.txtTamanioLlanta.setText("");
+        this.txtPresionLlanta.setText("");
+        this.tablaVehiculos.clearSelection();
     }
-    
+
 }

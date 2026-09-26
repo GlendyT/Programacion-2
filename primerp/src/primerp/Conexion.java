@@ -1,204 +1,218 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package primerp;
 
-/*
-import java.sql.Connection;  //nos sirve para conectar 
-import java.sql.DriverManager;//se encarga de solicitar la conexión al driver JDBC. 
-import java.sql.SQLException; //permite manejar errores relacionados con la base de datos.
-import java.sql.Statement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.util.ArrayList;*/
-
-import java.sql.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
-/**
- *
- * @author glend
- */
 public class Conexion {
 
+    private static final String URL = "jdbc:oracle:thin:@localhost:1521:umg";
+    private static final String USUARIO = "system";
+    private static final String PASSWORD = "Umg$2026";
+
     public static Connection conectar() {
-        Connection conexion = null;
-
-        String url = "jdbc:oracle:thin:@localhost:1521:umg";
-        String usuario = "system";
-        String password = "Umg$2026";
-
         try {
-
-            conexion = DriverManager.getConnection(
-                    url,
-                    usuario,
-                    password
-            );
-            System.out.println("Conexión realizada correctamente");
-
+            return DriverManager.getConnection(URL, USUARIO, PASSWORD);
         } catch (SQLException e) {
-
-            System.out.println(
-                    "Error de conexión: " + e.getMessage()
-            );
+            System.out.println("Error de conexion: " + e.getMessage());
+            return null;
         }
-
-        return conexion;
     }
 
     public ArrayList<Vehiculo> mostrarVehiculos() {
+        String sql = "SELECT ID_VEHICULO, MARCA, MODELO, ANIO, COLOR, PRECIO "
+                + "FROM VEHICULO ORDER BY ID_VEHICULO";
+        ArrayList<Vehiculo> vehiculos = new ArrayList<>();
+        Connection conexion = conectar();
 
-        String sql = "select * from vehiculo ";
-        ArrayList<Vehiculo> listVehiculos = new ArrayList<>();
+        if (conexion == null) {
+            return vehiculos;
+        }
 
-        try {
-            Connection c = conectar();
-            Statement statment = c.createStatement();
-            ResultSet resultado = statment.executeQuery(sql);
-
-            // DEBUG: imprimir nombres de columnas reales
-            ResultSetMetaData meta = resultado.getMetaData();
-            for (int i = 1; i <= meta.getColumnCount(); i++) {
-                System.out.println("Columna " + i + ": " + meta.getColumnName(i));
-            }
+        try (conexion;
+                PreparedStatement ps = conexion.prepareStatement(sql);
+                ResultSet resultado = ps.executeQuery()) {
 
             while (resultado.next()) {
-
-                int id = resultado.getInt("ID_VEHICULO");
-                String marca = resultado.getString("MARCA");
-                String modelo = resultado.getString("MODELO");
-                int anio = resultado.getInt("ANIO");
-                String color = resultado.getString("color");
-                double precio = resultado.getDouble("precio");
-
-                Vehiculo carro = new Vehiculo(id, marca, modelo, anio, precio, color);
-                listVehiculos.add(carro);
-
-                System.out.println("------------------------");
-                System.out.println("ID: " + id);
-                System.out.println("Marca: " + marca);
-                System.out.println("Modelo: " + modelo);
-                System.out.println("Año: " + anio);
-                System.out.println("Color: " + color);
+                Vehiculo vehiculo = new Vehiculo(
+                        resultado.getInt("ID_VEHICULO"),
+                        resultado.getString("MARCA"),
+                        resultado.getString("MODELO"),
+                        resultado.getInt("ANIO"),
+                        resultado.getDouble("PRECIO"),
+                        resultado.getString("COLOR")
+                );
+                vehiculos.add(vehiculo);
             }
-
-            System.out.println("r:" + resultado.getString("Modelo"));
-            System.out.println("r:" + resultado.getString("Marca"));
-
         } catch (SQLException e) {
-            System.out.println("error" + e.getMessage());
+            System.out.println("Error al consultar vehiculos: " + e.getMessage());
         }
-        return listVehiculos;
+
+        return vehiculos;
     }
 
-    public void insertarVehiculo(
-            int id,
-            String marca,
-            String modelo,
-            int anio,
-            double precio, String color) {
+    public int obtenerSiguienteIdVehiculo() {
+        String sql = "SELECT NVL(MAX(ID_VEHICULO), 0) + 1 AS SIGUIENTE_ID FROM VEHICULO";
+        Connection conexion = conectar();
 
-        String sql = "INSERT INTO vehiculo "
+        if (conexion == null) {
+            return -1;
+        }
+
+        try (conexion;
+                PreparedStatement ps = conexion.prepareStatement(sql);
+                ResultSet resultado = ps.executeQuery()) {
+            if (resultado.next()) {
+                return resultado.getInt("SIGUIENTE_ID");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al obtener el siguiente ID: " + e.getMessage());
+        }
+
+        return -1;
+    }
+
+    public boolean insertarVehiculo(int id, String marca, String modelo,
+            int anio, double precio, String color) {
+        String sql = "INSERT INTO VEHICULO "
                 + "(ID_VEHICULO, MARCA, MODELO, ANIO, PRECIO, COLOR) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
+        Connection conexion = conectar();
 
-        try {
+        if (conexion == null) {
+            return false;
+        }
 
-            Connection conexion = Conexion.conectar();
-
-            PreparedStatement ps
-                    = conexion.prepareStatement(sql);
-
+        try (conexion; PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.setString(2, marca);
             ps.setString(3, modelo);
             ps.setInt(4, anio);
             ps.setDouble(5, precio);
             ps.setString(6, color);
-
-            ps.executeUpdate();
-
-            System.out.println(
-                    "Vehículo insertado correctamente"
-            );
-
+            return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-
-            System.out.println(
-                    "Error al insertar: " + e.getMessage()
-            );
+            System.out.println("Error al insertar vehiculo: " + e.getMessage());
+            return false;
         }
     }
 
-    public void actualizarVehiculo(
-            int id,
-            String marca,
-            String modelo,
-            int anio,
-            double precio) {
+    public boolean actualizarVehiculo(int id, String marca, String modelo,
+            int anio, double precio, String color) {
+        String sql = "UPDATE VEHICULO SET MARCA = ?, MODELO = ?, ANIO = ?, "
+                + "PRECIO = ?, COLOR = ? WHERE ID_VEHICULO = ?";
+        Connection conexion = conectar();
 
-        String sql = "UPDATE vehiculo "
-                + "SET MARCA = ?, "
-                + "MODELO = ?, "
-                + "ANIO = ?, "
-                + "PRECIO = ? "
-                + "WHERE ID_VEHICULO = ?";
+        if (conexion == null) {
+            return false;
+        }
 
-        try {
-
-            Connection conexion = Conexion.conectar();
-
-            PreparedStatement ps
-                    = conexion.prepareStatement(sql);
-
+        try (conexion; PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setString(1, marca);
             ps.setString(2, modelo);
             ps.setInt(3, anio);
             ps.setDouble(4, precio);
-            ps.setInt(5, id);
-
-            ps.executeUpdate();
-
-            System.out.println(
-                    "Vehículo actualizado correctamente"
-            );
-
+            ps.setString(5, color);
+            ps.setInt(6, id);
+            return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-
-            System.out.println(
-                    "Error al actualizar: " + e.getMessage()
-            );
+            System.out.println("Error al actualizar vehiculo: " + e.getMessage());
+            return false;
         }
     }
 
-    public void eliminarVehiculo(int id) {
+    public boolean eliminarVehiculo(int id) {
+        String sql = "DELETE FROM VEHICULO WHERE ID_VEHICULO = ?";
+        Connection conexion = conectar();
 
-        String sql = "DELETE FROM vehiculo "
-                + "WHERE ID_VEHICULO = ?";
+        if (conexion == null) {
+            return false;
+        }
 
-        try {
-
-            Connection conexion = Conexion.conectar();
-
-            PreparedStatement ps
-                    = conexion.prepareStatement(sql);
-
+        try (conexion; PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, id);
-
-            ps.executeUpdate();
-
-            System.out.println(
-                    "Vehículo eliminado correctamente"
-            );
-
+            return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-
-            System.out.println(
-                    "Error al eliminar: " + e.getMessage()
-            );
+            System.out.println("Error al eliminar vehiculo: " + e.getMessage());
+            return false;
         }
     }
 
+    public ArrayList<Llanta> mostrarLlantasPorVehiculo(int idVehiculo) {
+        String sql = "SELECT ID_LLANTA, ID_VEHICULO, MARCA, TAMANIO, PRESION "
+                + "FROM LLANTAS WHERE ID_VEHICULO = ? ORDER BY ID_LLANTA";
+        ArrayList<Llanta> llantas = new ArrayList<>();
+        Connection conexion = conectar();
+
+        if (conexion == null) {
+            return llantas;
+        }
+
+        try (conexion; PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, idVehiculo);
+
+            try (ResultSet resultado = ps.executeQuery()) {
+                while (resultado.next()) {
+                    Llanta llanta = new Llanta(
+                            resultado.getInt("ID_LLANTA"),
+                            resultado.getInt("ID_VEHICULO"),
+                            resultado.getString("MARCA"),
+                            resultado.getInt("TAMANIO"),
+                            resultado.getDouble("PRESION")
+                    );
+                    llantas.add(llanta);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al consultar llantas: " + e.getMessage());
+        }
+
+        return llantas;
+    }
+
+    public boolean insertarLlanta(Llanta llanta) {
+        String sql = "INSERT INTO LLANTAS (ID_VEHICULO, MARCA, TAMANIO, PRESION) "
+                + "VALUES (?, ?, ?, ?)";
+        Connection conexion = conectar();
+
+        if (conexion == null) {
+            return false;
+        }
+
+        try (conexion; PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, llanta.getIdVehiculo());
+            ps.setString(2, llanta.getMarca());
+            ps.setInt(3, llanta.getTamanio());
+            ps.setDouble(4, llanta.getPresion());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            System.out.println("Error al insertar llanta: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean actualizarLlanta(Llanta llanta) {
+        String sql = "UPDATE LLANTAS SET MARCA = ?, TAMANIO = ?, PRESION = ? "
+                + "WHERE ID_LLANTA = ? AND ID_VEHICULO = ?";
+        Connection conexion = conectar();
+
+        if (conexion == null) {
+            return false;
+        }
+
+        try (conexion; PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, llanta.getMarca());
+            ps.setInt(2, llanta.getTamanio());
+            ps.setDouble(3, llanta.getPresion());
+            ps.setInt(4, llanta.getIdLlanta());
+            ps.setInt(5, llanta.getIdVehiculo());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            System.out.println("Error al actualizar llanta: " + e.getMessage());
+            return false;
+        }
+    }
 }

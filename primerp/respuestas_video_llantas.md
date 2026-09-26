@@ -150,35 +150,38 @@ La decisión se toma mediante la variable:
 Llanta llantaSeleccionada;
 ```
 
-Cuando no se ha seleccionado una fila de la tabla de llantas, el valor de esta variable es `null`. En ese caso, el programa entiende que se está registrando una llanta nueva y ejecuta un `INSERT`:
+El formulario utiliza un solo botón llamado **Guardar vehículo y llanta**. Primero comprueba si hay un vehículo seleccionado y si hay una llanta seleccionada.
+
+Cuando no hay un vehículo seleccionado, el programa entiende que tanto el vehículo como la llanta son nuevos. Por eso inserta ambos registros usando una sola transacción.
+
+Cuando se selecciona un vehículo existente, sus datos y los datos de su primera llanta se cargan automáticamente. Si `llantaSeleccionada` contiene un objeto, el botón actualiza el vehículo y esa llanta:
 
 ```java
-if (llantaSeleccionada == null) {
-    Llanta nuevaLlanta = new Llanta(
-        0,
-        vehiculo.id,
-        marca,
-        tamanio,
-        presion
-    );
-    operacionExitosa = conexion.insertarLlanta(nuevaLlanta);
-}
+boolean nuevoVehiculo = vehiculoSeleccionado == null;
+boolean nuevaLlanta = nuevoVehiculo || llantaSeleccionada == null;
 ```
 
-Cuando el usuario selecciona una fila del `JTable` de llantas, el objeto correspondiente se guarda en `llantaSeleccionada`. Sus datos se cargan en los campos y el texto del botón cambia a **Actualizar llanta**.
+Si se presiona **Nueva llanta**, los campos de llanta se limpian y `llantaSeleccionada` vuelve a ser `null`. Al guardar, el vehículo se actualiza y se inserta una llanta adicional.
 
-En ese caso, `llantaSeleccionada` ya no es `null`, por lo que se modifican sus datos y se ejecuta un `UPDATE`:
+La operación completa se realiza mediante:
 
 ```java
-else {
-    llantaSeleccionada.setMarca(marca);
-    llantaSeleccionada.setTamanio(tamanio);
-    llantaSeleccionada.setPresion(presion);
-    operacionExitosa = conexion.actualizarLlanta(llantaSeleccionada);
-}
+conexion.guardarVehiculoConLlanta(
+    idVehiculo,
+    marcaVehiculo,
+    modelo,
+    anio,
+    precio,
+    color,
+    llanta,
+    nuevoVehiculo,
+    nuevaLlanta
+);
 ```
 
-La actualización usa `ID_LLANTA` para modificar únicamente la llanta seleccionada y también verifica `ID_VEHICULO`:
+Este método utiliza una transacción. Primero desactiva la confirmación automática con `setAutoCommit(false)`. Si se guardan correctamente el vehículo y la llanta, ejecuta `commit()`. Si alguna operación falla, ejecuta `rollback()` para impedir que quede guardada solamente una parte de la información.
+
+Cuando se actualiza una llanta, se utiliza `ID_LLANTA` para modificar únicamente la seleccionada y también se verifica `ID_VEHICULO`:
 
 ```sql
 UPDATE LLANTAS
@@ -186,19 +189,11 @@ SET MARCA = ?, TAMANIO = ?, PRESION = ?
 WHERE ID_LLANTA = ? AND ID_VEHICULO = ?
 ```
 
-El botón **Nueva llanta** limpia los campos y vuelve a establecer `llantaSeleccionada` como `null`. Esto permite agregar otra llanta aunque el vehículo ya tenga registros.
-
-Después de insertar o actualizar se ejecuta nuevamente:
-
-```java
-cargarLlantasDelVehiculo(vehiculo.id);
-```
-
-Por eso el `JTable` vuelve a consultar Oracle y muestra los datos actualizados.
+Después de guardar se vuelven a consultar los vehículos y las llantas. Por eso los `JTable` muestran los datos actualizados.
 
 ### Respuesta breve para el video
 
-> El programa revisa la variable `llantaSeleccionada`. Si es `null`, significa que no se seleccionó una llanta existente y se ejecuta un INSERT. Si contiene un objeto, significa que el usuario seleccionó una llanta del JTable y se ejecuta un UPDATE usando su ID. Después de cualquiera de las dos operaciones se vuelven a consultar las llantas para actualizar la tabla.
+> El programa usa un solo botón para guardar el vehículo y la llanta. Si no hay un vehículo seleccionado, inserta ambos. Si se seleccionó un vehículo y una llanta, actualiza ambos. Si se presionó Nueva llanta, actualiza el vehículo e inserta la nueva llanta. Las dos operaciones se ejecutan dentro de una transacción para guardar todo o no guardar nada.
 
 ## 5. ¿Qué función cumple PreparedStatement?
 
@@ -253,6 +248,6 @@ ps.executeUpdate();
 >
 > Después envío ese ID al método `mostrarLlantasPorVehiculo`. Este método ejecuta un SELECT con `WHERE ID_VEHICULO = ?` y muestra los resultados en la tabla de llantas.
 >
-> Para decidir entre insertar y actualizar reviso `llantaSeleccionada`. Si es `null`, se trata de una llanta nueva y ejecuto un INSERT. Si el usuario seleccionó una llanta, la variable contiene el objeto y ejecuto un UPDATE usando `ID_LLANTA`. Después vuelvo a consultar Oracle para actualizar el JTable.
+> Para decidir entre insertar y actualizar reviso el vehículo y la llanta seleccionados. El único botón de guardado inserta ambos cuando son nuevos, actualiza ambos cuando ya existen, o actualiza el vehículo e inserta otra llanta después de presionar Nueva llanta. Todo se realiza en una transacción y después vuelvo a consultar Oracle para actualizar los JTable.
 >
 > Finalmente, PreparedStatement permite utilizar parámetros en las instrucciones SQL. Los valores se asignan con `setInt`, `setString` y `setDouble`. Esto conserva los tipos correctos, evita concatenaciones y reduce el riesgo de inyección SQL.

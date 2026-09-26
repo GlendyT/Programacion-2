@@ -25,8 +25,7 @@ public class FrmVehiculo extends JFrame {
     JLabel lblColor = new JLabel("Color:");
     JTextField txtColor = new JTextField();
 
-    JButton btnGuardar = new JButton("Guardar vehículo");
-    JButton btnActualizar = new JButton("Actualizar");
+    JButton btnGuardar = new JButton("Guardar vehículo y llanta");
     JButton btnEliminar = new JButton("Eliminar");
     JButton btnMotor = new JButton("Gestionar motor");
     JButton btnLimpiar = new JButton("Limpiar");
@@ -42,7 +41,6 @@ public class FrmVehiculo extends JFrame {
     JTextField txtTamanioLlanta = new JTextField();
     JLabel lblPresionLlanta = new JLabel("Presión:");
     JTextField txtPresionLlanta = new JTextField();
-    JButton btnGuardarLlanta = new JButton("Guardar llanta");
     JButton btnNuevaLlanta = new JButton("Nueva llanta");
     JLabel lblEstadoLlantas = new JLabel(" ");
 
@@ -77,13 +75,11 @@ public class FrmVehiculo extends JFrame {
         agregarCampo(lblPrecio, txtPrecio, 175);
         agregarCampo(lblColor, txtColor, 215);
 
-        btnGuardar.setBounds(30, 265, 145, 35);
-        btnActualizar.setBounds(185, 265, 115, 35);
-        btnEliminar.setBounds(310, 265, 100, 35);
-        btnMotor.setBounds(420, 265, 140, 35);
-        btnLimpiar.setBounds(570, 265, 90, 35);
+        btnGuardar.setBounds(30, 265, 210, 35);
+        btnEliminar.setBounds(250, 265, 100, 35);
+        btnMotor.setBounds(360, 265, 140, 35);
+        btnLimpiar.setBounds(510, 265, 90, 35);
         add(btnGuardar);
-        add(btnActualizar);
         add(btnEliminar);
         add(btnMotor);
         add(btnLimpiar);
@@ -119,9 +115,7 @@ public class FrmVehiculo extends JFrame {
         agregarCampoLlanta(lblTamanioLlanta, txtTamanioLlanta, 135);
         agregarCampoLlanta(lblPresionLlanta, txtPresionLlanta, 175);
 
-        btnGuardarLlanta.setBounds(700, 225, 160, 35);
-        btnNuevaLlanta.setBounds(875, 225, 145, 35);
-        add(btnGuardarLlanta);
+        btnNuevaLlanta.setBounds(790, 225, 145, 35);
         add(btnNuevaLlanta);
 
         modeloTablaLlantas = crearModeloNoEditable(
@@ -164,12 +158,10 @@ public class FrmVehiculo extends JFrame {
             }
         });
 
-        btnGuardar.addActionListener(e -> guardarVehiculo());
-        btnActualizar.addActionListener(e -> actualizarVehiculo());
+        btnGuardar.addActionListener(e -> guardarVehiculoYLlanta());
         btnEliminar.addActionListener(e -> eliminarVehiculo());
         btnLimpiar.addActionListener(e -> limpiarFormularioCompleto());
         btnMotor.addActionListener(e -> new FrmMotor().setVisible(true));
-        btnGuardarLlanta.addActionListener(e -> guardarOActualizarLlanta());
         btnNuevaLlanta.addActionListener(e -> prepararNuevaLlanta());
     }
 
@@ -296,50 +288,7 @@ public class FrmVehiculo extends JFrame {
         txtMarcaLlanta.setText(llantaSeleccionada.getMarca());
         txtTamanioLlanta.setText(String.valueOf(llantaSeleccionada.getTamanio()));
         txtPresionLlanta.setText(String.valueOf(llantaSeleccionada.getPresion()));
-        btnGuardarLlanta.setText("Actualizar llanta");
         lblEstadoLlantas.setText("Editando llanta ID " + llantaSeleccionada.getIdLlanta());
-    }
-
-    private void guardarOActualizarLlanta() {
-        Vehiculo vehiculo = obtenerVehiculoSeleccionado();
-        if (vehiculo == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Primero seleccione un vehículo en la tabla.",
-                    "Vehículo requerido", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            String marca = textoRequerido(txtMarcaLlanta, "la marca de la llanta");
-            int tamanio = enteroPositivo(txtTamanioLlanta, "el tamaño de la llanta");
-            double presion = decimalPositivo(txtPresionLlanta, "la presión de la llanta");
-            boolean operacionExitosa;
-            String mensaje;
-
-            if (llantaSeleccionada == null) {
-                Llanta nuevaLlanta = new Llanta(0, vehiculo.id, marca, tamanio, presion);
-                operacionExitosa = conexion.insertarLlanta(nuevaLlanta);
-                mensaje = "Llanta insertada correctamente.";
-            } else {
-                llantaSeleccionada.setMarca(marca);
-                llantaSeleccionada.setTamanio(tamanio);
-                llantaSeleccionada.setPresion(presion);
-                operacionExitosa = conexion.actualizarLlanta(llantaSeleccionada);
-                mensaje = "Llanta actualizada correctamente.";
-            }
-
-            if (operacionExitosa) {
-                cargarLlantasDelVehiculo(vehiculo.id);
-                JOptionPane.showMessageDialog(this, mensaje);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Oracle no pudo guardar la llanta. Revise la consola y la tabla LLANTAS.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(),
-                    "Datos no válidos", JOptionPane.WARNING_MESSAGE);
-        }
     }
 
     private void prepararNuevaLlanta() {
@@ -352,55 +301,59 @@ public class FrmVehiculo extends JFrame {
         txtMarcaLlanta.requestFocus();
     }
 
-    private void guardarVehiculo() {
+    private void guardarVehiculoYLlanta() {
         try {
-            String marca = textoRequerido(txtMarca, "la marca");
+            String marcaVehiculo = textoRequerido(txtMarca, "la marca del vehículo");
             String modelo = textoRequerido(txtModelo, "el modelo");
             int anio = enteroPositivo(txtAnio, "el año");
             double precio = decimalPositivo(txtPrecio, "el precio");
             String color = textoRequerido(txtColor, "el color");
-            int id = conexion.obtenerSiguienteIdVehiculo();
+            String marcaLlanta = textoRequerido(txtMarcaLlanta, "la marca de la llanta");
+            int tamanio = enteroPositivo(txtTamanioLlanta, "el tamaño de la llanta");
+            double presion = decimalPositivo(txtPresionLlanta, "la presión de la llanta");
 
-            if (id < 1) {
-                JOptionPane.showMessageDialog(this, "No fue posible generar el ID del vehículo.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+            Vehiculo vehiculoSeleccionado = obtenerVehiculoSeleccionado();
+            boolean nuevoVehiculo = vehiculoSeleccionado == null;
+            int idVehiculo;
+
+            if (nuevoVehiculo) {
+                idVehiculo = conexion.obtenerSiguienteIdVehiculo();
+                if (idVehiculo < 1) {
+                    JOptionPane.showMessageDialog(this,
+                            "No fue posible generar el ID del vehículo.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } else {
+                idVehiculo = vehiculoSeleccionado.id;
             }
 
-            if (conexion.insertarVehiculo(id, marca, modelo, anio, precio, color)) {
-                cargarVehiculos();
-                limpiarFormularioCompleto();
-                JOptionPane.showMessageDialog(this, "Vehículo guardado correctamente.");
+            boolean nuevaLlanta = nuevoVehiculo || llantaSeleccionada == null;
+            Llanta llanta;
+
+            if (nuevaLlanta) {
+                llanta = new Llanta(0, idVehiculo, marcaLlanta, tamanio, presion);
             } else {
-                JOptionPane.showMessageDialog(this, "No fue posible guardar el vehículo.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                llanta = llantaSeleccionada;
+                llanta.setIdVehiculo(idVehiculo);
+                llanta.setMarca(marcaLlanta);
+                llanta.setTamanio(tamanio);
+                llanta.setPresion(presion);
             }
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(),
-                    "Datos no válidos", JOptionPane.WARNING_MESSAGE);
-        }
-    }
 
-    private void actualizarVehiculo() {
-        Vehiculo vehiculo = obtenerVehiculoSeleccionado();
-        if (vehiculo == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un vehículo para actualizar.");
-            return;
-        }
+            boolean guardado = conexion.guardarVehiculoConLlanta(
+                    idVehiculo, marcaVehiculo, modelo, anio, precio, color,
+                    llanta, nuevoVehiculo, nuevaLlanta);
 
-        try {
-            String marca = textoRequerido(txtMarca, "la marca");
-            String modelo = textoRequerido(txtModelo, "el modelo");
-            int anio = enteroPositivo(txtAnio, "el año");
-            double precio = decimalPositivo(txtPrecio, "el precio");
-            String color = textoRequerido(txtColor, "el color");
-
-            if (conexion.actualizarVehiculo(vehiculo.id, marca, modelo, anio, precio, color)) {
+            if (guardado) {
                 cargarVehiculos();
                 limpiarFormularioCompleto();
-                JOptionPane.showMessageDialog(this, "Vehículo actualizado correctamente.");
+                JOptionPane.showMessageDialog(this,
+                        "Vehículo y llanta guardados correctamente.");
             } else {
-                JOptionPane.showMessageDialog(this, "No fue posible actualizar el vehículo.",
+                JOptionPane.showMessageDialog(this,
+                        "No fue posible guardar el vehículo y la llanta. "
+                        + "No se aplicó ningún cambio.",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (IllegalArgumentException ex) {
@@ -417,19 +370,23 @@ public class FrmVehiculo extends JFrame {
         }
 
         int respuesta = JOptionPane.showConfirmDialog(this,
-                "¿Eliminar el vehículo seleccionado?",
-                "Confirmar", JOptionPane.YES_NO_OPTION);
+                "Se eliminará el vehículo y todas sus llantas asociadas. "
+                + "¿Desea continuar?",
+                "Confirmar eliminación", JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
         if (respuesta != JOptionPane.YES_OPTION) {
             return;
         }
 
-        if (conexion.eliminarVehiculo(vehiculo.id)) {
+        if (conexion.eliminarVehiculoConLlantas(vehiculo.id)) {
             cargarVehiculos();
             limpiarFormularioCompleto();
-            JOptionPane.showMessageDialog(this, "Vehículo eliminado correctamente.");
+            JOptionPane.showMessageDialog(this,
+                    "Vehículo y llantas eliminados correctamente.");
         } else {
             JOptionPane.showMessageDialog(this,
-                    "No se pudo eliminar. Si tiene llantas asociadas, la llave foránea lo impide.",
+                    "No fue posible eliminar el vehículo y sus llantas. "
+                    + "No se aplicó ningún cambio.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -472,7 +429,6 @@ public class FrmVehiculo extends JFrame {
         txtPresionLlanta.setText("");
         tablaLlantas.clearSelection();
         llantaSeleccionada = null;
-        btnGuardarLlanta.setText("Guardar llanta");
     }
 
     private void limpiarFormularioCompleto() {

@@ -215,4 +215,123 @@ public class Conexion {
             return false;
         }
     }
+
+    public boolean guardarVehiculoConLlanta(int idVehiculo, String marcaVehiculo,
+            String modelo, int anio, double precio, String color, Llanta llanta,
+            boolean nuevoVehiculo, boolean nuevaLlanta) {
+        String sqlVehiculo;
+        String sqlLlanta;
+
+        if (nuevoVehiculo) {
+            sqlVehiculo = "INSERT INTO VEHICULO "
+                    + "(ID_VEHICULO, MARCA, MODELO, ANIO, PRECIO, COLOR) "
+                    + "VALUES (?, ?, ?, ?, ?, ?)";
+        } else {
+            sqlVehiculo = "UPDATE VEHICULO SET MARCA = ?, MODELO = ?, ANIO = ?, "
+                    + "PRECIO = ?, COLOR = ? WHERE ID_VEHICULO = ?";
+        }
+
+        if (nuevaLlanta) {
+            sqlLlanta = "INSERT INTO LLANTAS "
+                    + "(ID_VEHICULO, MARCA, TAMANIO, PRESION) VALUES (?, ?, ?, ?)";
+        } else {
+            sqlLlanta = "UPDATE LLANTAS SET MARCA = ?, TAMANIO = ?, PRESION = ? "
+                    + "WHERE ID_LLANTA = ? AND ID_VEHICULO = ?";
+        }
+
+        Connection conexion = conectar();
+        if (conexion == null) {
+            return false;
+        }
+
+        try (conexion) {
+            conexion.setAutoCommit(false);
+
+            try (PreparedStatement psVehiculo = conexion.prepareStatement(sqlVehiculo);
+                    PreparedStatement psLlanta = conexion.prepareStatement(sqlLlanta)) {
+
+                if (nuevoVehiculo) {
+                    psVehiculo.setInt(1, idVehiculo);
+                    psVehiculo.setString(2, marcaVehiculo);
+                    psVehiculo.setString(3, modelo);
+                    psVehiculo.setInt(4, anio);
+                    psVehiculo.setDouble(5, precio);
+                    psVehiculo.setString(6, color);
+                } else {
+                    psVehiculo.setString(1, marcaVehiculo);
+                    psVehiculo.setString(2, modelo);
+                    psVehiculo.setInt(3, anio);
+                    psVehiculo.setDouble(4, precio);
+                    psVehiculo.setString(5, color);
+                    psVehiculo.setInt(6, idVehiculo);
+                }
+
+                if (psVehiculo.executeUpdate() != 1) {
+                    throw new SQLException("No se guardo el vehiculo.");
+                }
+
+                if (nuevaLlanta) {
+                    psLlanta.setInt(1, idVehiculo);
+                    psLlanta.setString(2, llanta.getMarca());
+                    psLlanta.setInt(3, llanta.getTamanio());
+                    psLlanta.setDouble(4, llanta.getPresion());
+                } else {
+                    psLlanta.setString(1, llanta.getMarca());
+                    psLlanta.setInt(2, llanta.getTamanio());
+                    psLlanta.setDouble(3, llanta.getPresion());
+                    psLlanta.setInt(4, llanta.getIdLlanta());
+                    psLlanta.setInt(5, idVehiculo);
+                }
+
+                if (psLlanta.executeUpdate() != 1) {
+                    throw new SQLException("No se guardo la llanta.");
+                }
+
+                conexion.commit();
+                return true;
+            } catch (SQLException e) {
+                conexion.rollback();
+                System.out.println("Error al guardar vehiculo y llanta: " + e.getMessage());
+                return false;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error en la transaccion: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean eliminarVehiculoConLlantas(int idVehiculo) {
+        String sqlLlantas = "DELETE FROM LLANTAS WHERE ID_VEHICULO = ?";
+        String sqlVehiculo = "DELETE FROM VEHICULO WHERE ID_VEHICULO = ?";
+        Connection conexion = conectar();
+
+        if (conexion == null) {
+            return false;
+        }
+
+        try (conexion) {
+            conexion.setAutoCommit(false);
+
+            try (PreparedStatement psLlantas = conexion.prepareStatement(sqlLlantas);
+                    PreparedStatement psVehiculo = conexion.prepareStatement(sqlVehiculo)) {
+                psLlantas.setInt(1, idVehiculo);
+                psLlantas.executeUpdate();
+
+                psVehiculo.setInt(1, idVehiculo);
+                if (psVehiculo.executeUpdate() != 1) {
+                    throw new SQLException("No se encontro el vehiculo que se desea eliminar.");
+                }
+
+                conexion.commit();
+                return true;
+            } catch (SQLException e) {
+                conexion.rollback();
+                System.out.println("Error al eliminar vehiculo y llantas: " + e.getMessage());
+                return false;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error en la transaccion de eliminacion: " + e.getMessage());
+            return false;
+        }
+    }
 }

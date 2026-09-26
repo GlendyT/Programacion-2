@@ -89,8 +89,14 @@ public class FrmVehiculo extends JFrame {
         add(btnLimpiar);
 
         modeloTabla = crearModeloNoEditable(
-                "ID", "Marca", "Modelo", "Año", "Color", "Precio");
+                "ID", "Marca", "Modelo", "Año", "Color", "Precio",
+                "Marca llanta", "Tamaño llanta", "Presión llanta");
         tablaVehiculos = new JTable(modeloTabla);
+        tablaVehiculos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        int[] anchos = {45, 90, 100, 55, 80, 85, 140, 120, 120};
+        for (int i = 0; i < anchos.length; i++) {
+            tablaVehiculos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        }
         JScrollPane scrollVehiculos = new JScrollPane(tablaVehiculos);
         scrollVehiculos.setBounds(30, 320, 630, 400);
         add(scrollVehiculos);
@@ -172,13 +178,18 @@ public class FrmVehiculo extends JFrame {
         modeloTabla.setRowCount(0);
 
         for (Vehiculo vehiculo : listaVehiculos) {
+            ArrayList<Llanta> llantasVehiculo
+                    = conexion.mostrarLlantasPorVehiculo(vehiculo.id);
             modeloTabla.addRow(new Object[]{
                 vehiculo.id,
                 vehiculo.getMarca(),
                 vehiculo.getModelo(),
                 vehiculo.getAnio(),
                 vehiculo.color,
-                vehiculo.GetPrecio()
+                vehiculo.GetPrecio(),
+                resumirMarcas(llantasVehiculo),
+                resumirTamanios(llantasVehiculo),
+                resumirPresiones(llantasVehiculo)
             });
         }
     }
@@ -221,11 +232,58 @@ public class FrmVehiculo extends JFrame {
         }
 
         limpiarCamposLlanta();
+        actualizarVistaPreviaLlantas();
         if (listaLlantas.isEmpty()) {
             lblEstadoLlantas.setText("El vehículo no tiene llantas. Puede agregar una.");
         } else {
-            lblEstadoLlantas.setText("Seleccione una llanta para modificarla.");
+            tablaLlantas.setRowSelectionInterval(0, 0);
+            cargarLlantaSeleccionada();
+            lblEstadoLlantas.setText(
+                    "Llanta ID " + llantaSeleccionada.getIdLlanta()
+                    + " cargada. Puede modificar sus datos.");
         }
+    }
+
+    private void actualizarVistaPreviaLlantas() {
+        int fila = tablaVehiculos.getSelectedRow();
+        if (fila < 0) {
+            return;
+        }
+
+        modeloTabla.setValueAt(resumirMarcas(listaLlantas), fila, 6);
+        modeloTabla.setValueAt(resumirTamanios(listaLlantas), fila, 7);
+        modeloTabla.setValueAt(resumirPresiones(listaLlantas), fila, 8);
+    }
+
+    private String resumirMarcas(ArrayList<Llanta> llantas) {
+        StringBuilder resumen = new StringBuilder();
+        for (Llanta llanta : llantas) {
+            agregarAlResumen(resumen, llanta.getMarca());
+        }
+        return resumen.toString();
+    }
+
+    private String resumirTamanios(ArrayList<Llanta> llantas) {
+        StringBuilder resumen = new StringBuilder();
+        for (Llanta llanta : llantas) {
+            agregarAlResumen(resumen, String.valueOf(llanta.getTamanio()));
+        }
+        return resumen.toString();
+    }
+
+    private String resumirPresiones(ArrayList<Llanta> llantas) {
+        StringBuilder resumen = new StringBuilder();
+        for (Llanta llanta : llantas) {
+            agregarAlResumen(resumen, String.valueOf(llanta.getPresion()));
+        }
+        return resumen.toString();
+    }
+
+    private void agregarAlResumen(StringBuilder resumen, String valor) {
+        if (resumen.length() > 0) {
+            resumen.append(", ");
+        }
+        resumen.append(valor);
     }
 
     private void cargarLlantaSeleccionada() {

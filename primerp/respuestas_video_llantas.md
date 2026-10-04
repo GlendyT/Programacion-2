@@ -85,9 +85,20 @@ Al cambiar la selección del `JTable`, el programa carga los datos del vehículo
 cargarLlantasDelVehiculo(vehiculo.id);
 ```
 
+La tabla principal también muestra una vista previa con la marca, el tamaño y la presión de las llantas asociadas. Si el vehículo tiene varias llantas, sus valores aparecen separados por comas y en el mismo orden.
+
+Después de consultar las llantas, el formulario selecciona automáticamente la primera:
+
+```java
+tablaLlantas.setRowSelectionInterval(0, 0);
+cargarLlantaSeleccionada();
+```
+
+Esto llena automáticamente los campos de marca, tamaño y presión de la llanta, de la misma manera que se llenan los datos del vehículo. Para editar otra llanta solamente se selecciona su fila en el `JTable` de llantas.
+
 ### Respuesta breve para el video
 
-> Obtengo la fila seleccionada mediante `tablaVehiculos.getSelectedRow()`. Después utilizo esa posición para recuperar el objeto de `listaVehiculos`. El objeto contiene el ID real del vehículo guardado en Oracle y ese ID se utiliza para consultar o insertar sus llantas.
+> Obtengo la fila seleccionada mediante `tablaVehiculos.getSelectedRow()`. Después utilizo esa posición para recuperar el objeto de `listaVehiculos`. El objeto contiene el ID real guardado en Oracle. Con ese ID consulto sus llantas y selecciono automáticamente la primera para llenar sus campos de edición.
 
 ## 3. ¿Cómo se consultan las llantas del vehículo?
 
@@ -132,6 +143,8 @@ Llanta llanta = new Llanta(
 
 Los objetos se guardan en un `ArrayList<Llanta>` y posteriormente se agregan al modelo del `JTable` de llantas.
 
+Además, los datos se resumen en las columnas **Marca llanta**, **Tamaño llanta** y **Presión llanta** de la tabla principal de vehículos. La tabla separada de llantas conserva cada registro individual para poder seleccionar exactamente cuál se desea modificar.
+
 Si la consulta no devuelve registros, el formulario muestra el mensaje:
 
 > El vehículo no tiene llantas. Puede agregar una.
@@ -140,7 +153,7 @@ Si encuentra registros, estos aparecen en la tabla y el usuario puede selecciona
 
 ### Respuesta breve para el video
 
-> Al seleccionar un vehículo envío su ID al método `mostrarLlantasPorVehiculo`. El método ejecuta un `SELECT` con `WHERE ID_VEHICULO = ?`, convierte cada resultado en un objeto `Llanta` y devuelve una lista. Esa lista se utiliza para llenar el JTable de llantas.
+> Al seleccionar un vehículo envío su ID al método `mostrarLlantasPorVehiculo`. El método ejecuta un `SELECT` con `WHERE ID_VEHICULO = ?`, convierte cada resultado en un objeto `Llanta` y devuelve una lista. La lista llena el JTable de llantas y también genera la vista previa en la tabla principal.
 
 ## 4. ¿Cómo se decide si se debe insertar o actualizar?
 
@@ -240,13 +253,87 @@ ps.executeUpdate();
 
 > PreparedStatement sirve para ejecutar instrucciones SQL usando parámetros. Los signos de interrogación se reemplazan con métodos como `setInt`, `setString` y `setDouble`. Esto evita concatenar los datos del usuario, reduce el riesgo de inyección SQL y asegura que cada valor se envíe con el tipo correcto.
 
+## Funcionamiento final del formulario
+
+### Guardado unificado
+
+Existe un solo botón llamado **Guardar vehículo y llanta**. Este botón valida todos los campos y guarda ambas entidades en la misma operación:
+
+- Si no se seleccionó un vehículo, inserta el vehículo y su primera llanta.
+- Si se seleccionaron un vehículo y una llanta, actualiza ambos.
+- Si se seleccionó un vehículo y después se presionó **Nueva llanta**, actualiza el vehículo e inserta una llanta adicional.
+
+El guardado se realiza dentro de una transacción de Oracle:
+
+```java
+conexion.setAutoCommit(false);
+
+// INSERT o UPDATE del vehículo
+// INSERT o UPDATE de la llanta
+
+conexion.commit();
+```
+
+Si una de las operaciones falla, se ejecuta:
+
+```java
+conexion.rollback();
+```
+
+Esto garantiza que el vehículo y la llanta se guarden juntos. No puede quedar guardada solamente una parte de la información.
+
+### Eliminación unificada
+
+El botón **Eliminar** borra el vehículo y todas sus llantas asociadas. Primero solicita confirmación porque la operación afecta ambos tipos de registros.
+
+Oracle no permite eliminar directamente un vehículo que todavía está referenciado por `LLANTAS.ID_VEHICULO`. Por eso, dentro de una sola transacción, primero se eliminan las filas hijas:
+
+```sql
+DELETE FROM LLANTAS
+WHERE ID_VEHICULO = ?;
+```
+
+Después se elimina el vehículo:
+
+```sql
+DELETE FROM VEHICULO
+WHERE ID_VEHICULO = ?;
+```
+
+Si alguna de las dos operaciones falla, se ejecuta `rollback()` y no se elimina nada.
+
+### Consulta de un vehículo con todas sus llantas
+
+Para consultar un vehículo por su ID y obtener también todas sus llantas se utiliza:
+
+```sql
+SELECT
+    v.ID_VEHICULO,
+    v.MARCA AS MARCA_VEHICULO,
+    v.MODELO,
+    v.ANIO,
+    v.COLOR,
+    v.PRECIO,
+    l.ID_LLANTA,
+    l.MARCA AS MARCA_LLANTA,
+    l.TAMANIO,
+    l.PRESION
+FROM VEHICULO v
+LEFT JOIN LLANTAS l
+    ON l.ID_VEHICULO = v.ID_VEHICULO
+WHERE v.ID_VEHICULO = 1
+ORDER BY l.ID_LLANTA;
+```
+
+El número `1` se cambia por el ID que se desea consultar. Se utiliza `LEFT JOIN` para que el vehículo aparezca aunque todavía no tenga llantas. Si tiene varias, la consulta devuelve una fila por cada llanta.
+
 ## Guion sugerido para un video de máximo tres minutos
 
 > Primero relacioné las tablas `VEHICULO` y `LLANTAS` mediante `ID_VEHICULO`. Este campo es llave primaria en `VEHICULO` y llave foránea en `LLANTAS`, por lo que un vehículo puede tener varias llantas.
 >
-> Para obtener el vehículo seleccionado uso `getSelectedRow()` en la tabla de vehículos. Con la posición recupero el objeto de `listaVehiculos` y obtengo su ID.
+> Para obtener el vehículo seleccionado uso `getSelectedRow()` en la tabla de vehículos. Con la posición recupero el objeto de `listaVehiculos` y obtengo su ID. Al seleccionarlo se llenan sus datos, se consultan sus llantas y se carga automáticamente la primera llanta para editarla.
 >
-> Después envío ese ID al método `mostrarLlantasPorVehiculo`. Este método ejecuta un SELECT con `WHERE ID_VEHICULO = ?` y muestra los resultados en la tabla de llantas.
+> Después envío ese ID al método `mostrarLlantasPorVehiculo`. Este método ejecuta un SELECT con `WHERE ID_VEHICULO = ?`. Los resultados aparecen en la tabla de llantas y como vista previa en la tabla principal.
 >
 > Para decidir entre insertar y actualizar reviso el vehículo y la llanta seleccionados. El único botón de guardado inserta ambos cuando son nuevos, actualiza ambos cuando ya existen, o actualiza el vehículo e inserta otra llanta después de presionar Nueva llanta. Todo se realiza en una transacción y después vuelvo a consultar Oracle para actualizar los JTable.
 >

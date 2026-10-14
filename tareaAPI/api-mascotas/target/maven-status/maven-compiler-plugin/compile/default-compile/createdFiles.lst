@@ -1,0 +1,4 @@
+edu\mascotas\api\ApiMascotasApplication.class
+edu\mascotas\api\MascotaController.class
+edu\mascotas\api\ApiExceptionHandler.class
+edu\mascotas\api\MascotaRepository.class

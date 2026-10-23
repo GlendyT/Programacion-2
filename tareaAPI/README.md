@@ -169,6 +169,29 @@ La llamada HTTP se ejecuta fuera del hilo de la interfaz para que la ventana sig
 - Comprueba que responde `http://localhost:8080/api/mascotas`.
 - Confirma que la aplicación no esté usando otro puerto.
 
+### La API responde `{"error":"Ocurrio un error al consultar las mascotas."}`
+
+Este mensaje aparece por dos motivos principales:
+
+1. **Se consultó la ruta raíz (`http://localhost:8080`) en lugar del endpoint de la API:**
+   - El controlador (`MascotaController`) expone los datos únicamente en `http://localhost:8080/api/mascotas`.
+   - Al entrar a `http://localhost:8080/`, Spring lanza `NoResourceFoundException` (404), pero `ApiExceptionHandler` captura cualquier `Exception` general y responde con el mensaje genérico `"Ocurrio un error al consultar las mascotas."`.
+   - **Solución:** consulta siempre `http://localhost:8080/api/mascotas`.
+
+2. **El servidor se inició en una terminal donde no se definieron las variables de entorno (`$env:...`):**
+   - Spring Boot **no lee archivos `.env` automáticamente**. Si ejecutas `mvn spring-boot:run` sin haber corrido antes los comandos `$env:ORACLE_JDBC_URL`, `$env:ORACLE_DB_USER` y `$env:ORACLE_DB_PASSWORD` en **esa misma ventana de PowerShell**, `application.properties` recibe el texto literal `${ORACLE_JDBC_URL}` y HikariCP lanza `IllegalArgumentException`, que también es capturada por `ApiExceptionHandler` devolviendo `"Ocurrio un error al consultar las mascotas."`.
+   - **Solución:** detén la API (`Ctrl + C`) y, en la misma terminal ubicada en `tareaAPI\api-mascotas`, define las variables antes de iniciar:
+
+     ```powershell
+     $walletPath = 'C:\Users\glend\Downloads\University\Cuarto-Semestre\programacion-2\Wallet_mascotasproject'
+     Test-Path (Join-Path $walletPath 'tnsnames.ora')
+     $env:ORACLE_JDBC_URL = "jdbc:oracle:thin:@mascotasproject_tp?TNS_ADMIN=$($walletPath -replace '\\','/')"
+     $env:ORACLE_DB_USER = 'ADMIN'
+     $env:ORACLE_DB_PASSWORD = 'TU_CONTRASENA'
+
+     mvn spring-boot:run
+     ```
+
 ### La API devuelve un arreglo vacío
 
 La consulta funcionó, pero no hay registros visibles para el usuario/esquema conectado. Revisa que la tabla y los registros estén en ese mismo esquema:

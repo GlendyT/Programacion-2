@@ -16,4 +16,4 @@ Aplicación Java Swing que consume `GET http://localhost:8080/api/mascotas`, pro
 
 La tabla muestra ID, nombre, especie, raza, años, peso en libras, vacunación, estatus y timestamp. Los campos JSON `raza: null` se muestran vacíos; `esta_vacunado` se presenta como Sí/No. La tabla permite ordenar sus columnas.
 
-Si no carga los datos, comprueba que la API esté activa y que responda en `http://localhost:8080/api/mascotas`. Para la configuración completa y solución de problemas, consulta [`../README.md`](../README.md).
+Si no carga los datos, comprueba que la API esté activa y que responda en `http://localhost:8080/api/mascotas` (no en la raíz `http://localhost:8080`), y que la terminal donde corre la API tenga definidas las variables `$env:ORACLE_JDBC_URL`, `$env:ORACLE_DB_USER` y `$env:ORACLE_DB_PASSWORD`. Para la configuración completa y solución de problemas, consulta [`../README.md`](../README.md).

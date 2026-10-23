@@ -26,10 +26,17 @@ El `Test-Path` debe mostrar `True`. Sustituye los datos de ejemplo. Nunca guarde
 
 ## Ejecutar
 
-Desde esta carpeta, con las variables definidas:
+Desde esta carpeta, con las variables definidas en la **misma terminal** (Spring Boot no carga archivos `.env` automáticamente):
 
 ```powershell
 mvn spring-boot:run
 ```
 
 Deja la API activa mientras el cliente de escritorio la consuma.
+
+## Nota sobre el error `"Ocurrio un error al consultar las mascotas."`
+
+Si al consultar la API recibes `{"error":"Ocurrio un error al consultar las mascotas."}` (HTTP 500):
+
+1. **Verifica la URL:** asegúrate de consultar `http://localhost:8080/api/mascotas` y no `http://localhost:8080`. La ruta raíz no tiene controlador asignado y `ApiExceptionHandler` captura cualquier `Exception` (incluyendo rutas no encontradas) devolviendo ese mismo mensaje.
+2. **Verifica las variables de entorno en la terminal activa:** si iniciaste `mvn spring-boot:run` en una ventana de PowerShell donde no ejecutaste antes los `$env:ORACLE_JDBC_URL`, `$env:ORACLE_DB_USER` y `$env:ORACLE_DB_PASSWORD`, la propiedad `${ORACLE_JDBC_URL}` queda sin resolver y HikariCP falla al intentar abrir la conexión. Detén el servidor (`Ctrl + C`), exporta las variables en esa misma terminal y vuelve a ejecutar `mvn spring-boot:run`.
